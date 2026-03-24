@@ -40,10 +40,20 @@ def get_chrome_version():
             for path in chrome_paths:
                 if os.path.exists(path):
                     try:
+                        # WMIC expects backslashes doubled in the WHERE clause
+                        wmic_path = path.replace("\\", "\\\\")
                         # Try using registry/wmic to get version
                         output = subprocess.check_output(
-                            ['wmic', 'datafile', 'where', f'name="{path.replace("\\", "\\\\")}"', 'get', 'Version', '/value'],
-                            stderr=subprocess.STDOUT
+                            [
+                                "wmic",
+                                "datafile",
+                                "where",
+                                f'name="{wmic_path}"',
+                                "get",
+                                "Version",
+                                "/value",
+                            ],
+                            stderr=subprocess.STDOUT,
                         )
                         version_str = output.decode('utf-8').strip()
                         if "Version=" in version_str:

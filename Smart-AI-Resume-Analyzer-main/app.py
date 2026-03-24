@@ -1,6 +1,7 @@
 """
 Smart Resume AI - Main Application
 """
+import os
 import time
 from PIL import Image
 from jobs.job_search import render_job_search
@@ -40,7 +41,7 @@ import datetime
 # Set page config at the very beginning
 st.set_page_config(
     page_title="Smart Resume AI",
-    page_icon="🚀",
+    page_icon="",
     layout="wide"
 )
 
@@ -105,9 +106,15 @@ class ResumeApp:
         # Initialize database
         init_database()
 
-        # Load external CSS
-        with open('style/style.css') as f:
-            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+        # Load external CSS (next to app.py — required for Streamlit Cloud cwd)
+        _base = os.path.dirname(os.path.abspath(__file__))
+        _css_path = os.path.join(_base, "style", "style.css")
+        try:
+            with open(_css_path, encoding="utf-8") as f:
+                st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        except FileNotFoundError:
+            # Missing from deploy: push `style/style.css` with app.py and redeploy
+            pass
 
         # Load Google Fonts
         st.markdown("""
@@ -470,33 +477,7 @@ class ResumeApp:
         
         col1, col2, col3 = st.columns([1, 3, 1])
         
-        with col2:
-            # GitHub star button with lottie animation
-            st.markdown("""
-            <div style='display: flex; justify-content: center; align-items: center; margin-bottom: 10px;'>
-                <a href='https://github.com/Hunterdii/Smart-AI-Resume-Analyzer' target='_blank' style='text-decoration: none;'>
-                    <div style='display: flex; align-items: center; background-color: #24292e; padding: 5px 10px; border-radius: 5px; transition: all 0.3s ease;'>
-                        <svg height="16" width="16" viewBox="0 0 16 16" version="1.1" style='margin-right: 5px;'>
-                            <path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z" fill="gold"></path>
-                        </svg>
-                        <span style='color: white; font-size: 14px;'>Star this repo</span>
-                    </div>
-                </a>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Footer text
-            st.markdown("""
-            <p style='text-align: center;'>
-                Powered by <b>Streamlit</b> and <b>Google Gemini AI</b> | Developed by 
-                <a href="https://www.linkedin.com/in/patel-hetkumar-sandipbhai-8b110525a/" target="_blank" style='text-decoration: none; color: #FFFFFF'>
-                    <b>Het Patel (Hunterdii)</b>
-                </a>
-            </p>
-            <p style='text-align: center; font-size: 12px; color: #888888;'>
-                "Every star counts! If you find this project helpful, please consider starring the repo to help it reach more people."
-            </p>
-            """, unsafe_allow_html=True)
+        
 
     def load_image(self, image_name):
         """Load image from static directory"""
@@ -899,10 +880,8 @@ class ResumeApp:
             print("Validating form data...")
             print(f"Session state form data: {st.session_state.form_data}")
             print(
-    f"Email input value: {
-        st.session_state.get(
-            'email_input',
-             '')}")
+                f"Email input value: {st.session_state.get('email_input', '')}"
+            )
 
             # Get the current values from form
             current_name = st.session_state.form_data['personal_info']['full_name'].strip(
@@ -961,16 +940,14 @@ class ResumeApp:
                             st.download_button(
                                 label="Download Resume 📥",
                                 data=resume_buffer,
-                                file_name=f"{
-    current_name.replace(
-        ' ', '_')}_resume.docx",
+                                file_name=f"{current_name.replace(' ', '_')}_resume.docx",
                                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                 on_click=lambda: st.balloons()
                             )
                         except Exception as db_error:
                             print(
-    f"Warning: Failed to save to database: {
-        str(db_error)}")
+                                f"Warning: Failed to save to database: {str(db_error)}"
+                            )
                             # Still allow download even if database save fails
                             st.warning(
                                 "⚠️ Resume generated but couldn't be saved to database")
@@ -981,9 +958,7 @@ class ResumeApp:
                             st.download_button(
                                 label="Download Resume 📥",
                                 data=resume_buffer,
-                                file_name=f"{
-    current_name.replace(
-        ' ', '_')}_resume.docx",
+                                file_name=f"{current_name.replace(' ', '_')}_resume.docx",
                                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                 on_click=lambda: st.balloons()
                             )
@@ -1416,8 +1391,8 @@ class ResumeApp:
                         # Show results based on document type
                         if analysis.get('document_type') != 'resume':
                             st.error(
-    f"⚠️ This appears to be a {
-        analysis['document_type']} document, not a resume!")
+                                f"⚠️ This appears to be a {analysis['document_type']} document, not a resume!"
+                            )
                             st.warning(
                                 "Please upload a proper resume for ATS analysis.")
                             return
@@ -2402,21 +2377,26 @@ class ResumeApp:
                                 # Update progress
                                 progress_bar.progress(80)
                                 
-                                # Save the analysis to the database
+                                # Save the analysis to the database (never block UI on DB errors)
                                 if analysis_result and "error" not in analysis_result:
                                     # Extract the resume score
                                     resume_score = analysis_result.get(
                                         "resume_score", 0)
                                     
-                                    # Save to database
-                                    save_ai_analysis_data(
-                                        None,  # No user_id needed
-                                        {
-                                            "model_used": selected_model,
-                                            "resume_score": resume_score,
-                                            "job_role": job_role
-                                        }
-                                    )
+                                    try:
+                                        save_ai_analysis_data(
+                                            None,  # No user_id needed
+                                            {
+                                                "model_used": selected_model,
+                                                "resume_score": resume_score,
+                                                "job_role": job_role
+                                            }
+                                        )
+                                    except Exception as db_err:
+                                        st.warning(
+                                            "Analysis could not be saved to the database; "
+                                            f"your results are still shown below. ({db_err})"
+                                        )
                                 # show snowflake effect
                                 st.snow()
 
@@ -2687,97 +2667,107 @@ class ResumeApp:
                                             <div class="section-content">""",
                                     }
                                     
-                                    # Apply the styling to each section
-                                    for section, style in section_styles.items():
-                                        if section in formatted_analysis:
-                                            formatted_analysis = formatted_analysis.replace(
-                                                section, style)
-                                            # Add closing div tags
-                                            next_section = False
-                                            for next_sec in section_styles.keys():
-                                                if next_sec != section and next_sec in formatted_analysis.split(style)[1]:
-                                                    split_text = formatted_analysis.split(style)[1].split(next_sec)
-                                                    formatted_analysis = formatted_analysis.split(style)[0] + style + split_text[0] + "</div></div>" + next_sec + "".join(split_text[1:])
-                                                    next_section = True
-                                                    break
-                                            if not next_section:
-                                                formatted_analysis = formatted_analysis + "</div></div>"
-                                    
-                                    # Remove any extra closing div tags that might have been added
-                                    formatted_analysis = formatted_analysis.replace("</div></div></div></div>", "</div></div>")
-                                    
-                                    # Ensure we don't have any orphaned closing tags at the end
-                                    if formatted_analysis.endswith("</div>"):
-                                        # Count opening and closing div tags
-                                        open_tags = formatted_analysis.count("<div")
-                                        close_tags = formatted_analysis.count("</div>")
+                                    try:
+                                        # Apply the styling to each section
+                                        for section, style in section_styles.items():
+                                            if section in formatted_analysis:
+                                                formatted_analysis = formatted_analysis.replace(
+                                                    section, style)
+                                                # Add closing div tags
+                                                next_section = False
+                                                for next_sec in section_styles.keys():
+                                                    if next_sec != section and next_sec in formatted_analysis.split(style)[1]:
+                                                        split_text = formatted_analysis.split(style)[1].split(next_sec)
+                                                        formatted_analysis = formatted_analysis.split(style)[0] + style + split_text[0] + "</div></div>" + next_sec + "".join(split_text[1:])
+                                                        next_section = True
+                                                        break
+                                                if not next_section:
+                                                    formatted_analysis = formatted_analysis + "</div></div>"
                                         
-                                        # If we have more closing than opening tags, remove the extras
-                                        if close_tags > open_tags:
-                                            excess = close_tags - open_tags
-                                            formatted_analysis = formatted_analysis[:-6 * excess]
-                                    
-                                    # Clean up any visible HTML tags that might appear in the text
-                                    formatted_analysis = formatted_analysis.replace("&lt;/div&gt;", "")
-                                    formatted_analysis = formatted_analysis.replace("&lt;div&gt;", "")
-                                    formatted_analysis = formatted_analysis.replace("<div>", "<div>")  # Ensure proper opening
-                                    formatted_analysis = formatted_analysis.replace("</div>", "</div>")  # Ensure proper closing
-                                    
-                                    # Add CSS for the report
-                                    st.markdown("""
-                                    <style>
-                                        .report-section {
-                                            margin-bottom: 25px;
-                                            border: 1px solid #4B4B4B;
-                                            border-radius: 8px;
-                                            overflow: hidden;
-                                        }
-                                        .section-content {
-                                            padding: 15px;
-                                            background-color: #262730;
-                                            color: #ffffff;
-                                        }
-                                        .report-section h3 {
-                                            margin-top: 0;
-                                            font-weight: 600;
-                                        }
-                                        .report-section ul {
-                                            padding-left: 20px;
-                                        }
-                                        .report-section p {
-                                            color: #ffffff;
-                                            margin-bottom: 10px;
-                                        }
-                                        .report-section li {
-                                            color: #ffffff;
-                                            margin-bottom: 5px;
-                                        }
-                                    </style>
-                                    """, unsafe_allow_html=True)
+                                        # Remove any extra closing div tags that might have been added
+                                        formatted_analysis = formatted_analysis.replace("</div></div></div></div>", "</div></div>")
+                                        
+                                        # Ensure we don't have any orphaned closing tags at the end
+                                        if formatted_analysis.endswith("</div>"):
+                                            # Count opening and closing div tags
+                                            open_tags = formatted_analysis.count("<div")
+                                            close_tags = formatted_analysis.count("</div>")
+                                            
+                                            # If we have more closing than opening tags, remove the extras
+                                            if close_tags > open_tags:
+                                                excess = close_tags - open_tags
+                                                formatted_analysis = formatted_analysis[:-6 * excess]
+                                        
+                                        # Clean up any visible HTML tags that might appear in the text
+                                        formatted_analysis = formatted_analysis.replace("&lt;/div&gt;", "")
+                                        formatted_analysis = formatted_analysis.replace("&lt;div&gt;", "")
+                                        formatted_analysis = formatted_analysis.replace("<div>", "<div>")  # Ensure proper opening
+                                        formatted_analysis = formatted_analysis.replace("</div>", "</div>")  # Ensure proper closing
+                                        
+                                        # Add CSS for the report
+                                        st.markdown("""
+                                        <style>
+                                            .report-section {
+                                                margin-bottom: 25px;
+                                                border: 1px solid #4B4B4B;
+                                                border-radius: 8px;
+                                                overflow: hidden;
+                                            }
+                                            .section-content {
+                                                padding: 15px;
+                                                background-color: #262730;
+                                                color: #ffffff;
+                                            }
+                                            .report-section h3 {
+                                                margin-top: 0;
+                                                font-weight: 600;
+                                            }
+                                            .report-section ul {
+                                                padding-left: 20px;
+                                            }
+                                            .report-section p {
+                                                color: #ffffff;
+                                                margin-bottom: 10px;
+                                            }
+                                            .report-section li {
+                                                color: #ffffff;
+                                                margin-bottom: 5px;
+                                            }
+                                        </style>
+                                        """, unsafe_allow_html=True)
 
-                                    # Display the formatted analysis
-                                    st.markdown(f"""
-                                    <div style="background-color: #262730; padding: 20px; border-radius: 10px; border: 1px solid #4B4B4B; color: #ffffff;">
-                                        {formatted_analysis}
-                                    </div>
-                                    """, unsafe_allow_html=True)
+                                        # Display the formatted analysis
+                                        st.markdown(f"""
+                                        <div style="background-color: #262730; padding: 20px; border-radius: 10px; border: 1px solid #4B4B4B; color: #ffffff;">
+                                            {formatted_analysis}
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                    except Exception as fmt_err:
+                                        st.warning(
+                                            f"Rich formatting failed; showing plain analysis text. ({fmt_err})"
+                                        )
+                                        st.markdown(full_response)
 
-                                    # Create a PDF report
-                                    pdf_buffer = self.ai_analyzer.generate_pdf_report(
-                                        analysis_result={
-                                            "score": resume_score,
-                                            "ats_score": ats_score,
-                                            "model_used": model_used,
-                                            "full_response": full_response,
-                                            "strengths": analysis_result.get("strengths", []),
-                                            "weaknesses": analysis_result.get("weaknesses", []),
-                                            "used_custom_job_desc": st.session_state.get('used_custom_job_desc', False),
-                                            "custom_job_description": custom_job_description if st.session_state.get('used_custom_job_desc', False) else ""
-                                        },
-                                        candidate_name=st.session_state.get(
-                                            'candidate_name', 'Candidate'),
-                                        job_role=selected_role
-                                    )
+                                    # Create a PDF report (do not hide analysis if PDF fails)
+                                    pdf_buffer = None
+                                    try:
+                                        pdf_buffer = self.ai_analyzer.generate_pdf_report(
+                                            analysis_result={
+                                                "score": resume_score,
+                                                "ats_score": ats_score,
+                                                "model_used": model_used,
+                                                "full_response": full_response,
+                                                "strengths": analysis_result.get("strengths", []),
+                                                "weaknesses": analysis_result.get("weaknesses", []),
+                                                "used_custom_job_desc": st.session_state.get('used_custom_job_desc', False),
+                                                "custom_job_description": custom_job_description if st.session_state.get('used_custom_job_desc', False) else ""
+                                            },
+                                            candidate_name=st.session_state.get(
+                                                'candidate_name', 'Candidate'),
+                                            job_role=selected_role
+                                        )
+                                    except Exception as pdf_err:
+                                        st.warning(f"PDF report could not be generated: {pdf_err}")
 
                                     # PDF download button
                                     if pdf_buffer:
@@ -2789,8 +2779,6 @@ class ResumeApp:
                                             use_container_width=True,
                                             on_click=lambda: st.balloons()
                                         )
-                                    else:
-                                        st.error("PDF generation failed. Please try again later.")
                                 else:
                                     st.error(f"Analysis failed: {analysis_result.get('error', 'Unknown error')}")
                         except Exception as ai_error:
