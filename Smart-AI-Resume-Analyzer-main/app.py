@@ -528,8 +528,6 @@ class ResumeApp:
         """Render the dashboard page"""
         self.dashboard_manager.render_dashboard()
 
-        st.toast("Check out these repositories: [Awesome Hacking](https://github.com/Hunterdii/Awesome-Hacking)", icon="ℹ️")
-
 
     def render_empty_state(self, icon, message):
         """Render an empty state with icon and message"""
@@ -976,8 +974,6 @@ class ResumeApp:
                 print(f"Full traceback: {traceback.format_exc()}")
                 st.error(f"❌ Error preparing resume data: {str(e)}")
 
-        st.toast("Check out these repositories: [30-Days-Of-Rust](https://github.com/Hunterdii/30-Days-Of-Rust)", icon="ℹ️")
-
     def render_about(self):
         """Render the about page"""
         # Apply modern styles
@@ -1213,8 +1209,6 @@ class ResumeApp:
                 </a>
             </div>
         """, unsafe_allow_html=True)
-
-        st.toast("Check out these repositories: [Iriswise](https://github.com/Hunterdii/Iriswise)", icon="ℹ️")
 
     def render_analyzer(self):
         """Render the resume analyzer page"""
@@ -2786,9 +2780,6 @@ class ResumeApp:
                             import traceback as tb
                             st.code(tb.format_exc())
 
-        st.toast("Check out these repositories: [Awesome Java](https://github.com/Hunterdii/Awesome-Java)", icon="ℹ️")
-
-
     def render_home(self):
         apply_modern_styles()
         
@@ -2821,8 +2812,6 @@ class ResumeApp:
         
         st.markdown('</div>', unsafe_allow_html=True)
         
-        st.toast("Check out these repositories: [AI-Nexus(AI/ML)](https://github.com/Hunterdii/AI-Nexus)", icon="ℹ️")
-
         # Call-to-Action with Streamlit navigation
         col1, col2, col3 = st.columns([1, 1, 1])
         with col2:
@@ -2838,7 +2827,6 @@ class ResumeApp:
         """Render the job search page"""
         render_job_search()
 
-        st.toast("Check out these repositories: [GeeksforGeeks-POTD](https://github.com/Hunterdii/GeeksforGeeks-POTD)", icon="ℹ️")
 
 
     def render_feedback_page(self):
@@ -2862,38 +2850,6 @@ class ResumeApp:
             
         with stats_tab:
             feedback_manager.render_feedback_stats()
-
-        st.toast("Check out these repositories: [TryHackMe Free Rooms](https://github.com/Hunterdii/tryhackme-free-rooms)", icon="ℹ️")
-
-
-    def show_repo_notification(self):
-        message = """
-<div style="background-color: #1e1e1e; border-radius: 10px; border: 1px solid #4b6cb7; padding: 10px; margin: 10px 0; color: white;">
-    <div style="margin-bottom: 10px;">Check out these other repositories:</div>
-    <div style="margin-bottom: 5px;"><b>Hacking Resources:</b></div>
-    <ul style="margin-top: 0; padding-left: 20px;">
-        <li><a href="https://github.com/Hunterdii/tryhackme-free-rooms" target="_blank" style="color: #4CAF50;">TryHackMe Free Rooms</a></li>
-        <li><a href="https://github.com/Hunterdii/Awesome-Hacking" target="_blank" style="color: #4CAF50;">Awesome Hacking</a></li>
-    </ul>
-    <div style="margin-bottom: 5px;"><b>Programming Languages:</b></div>
-    <ul style="margin-top: 0; padding-left: 20px;">
-        <li><a href="https://github.com/Hunterdii/Awesome-Java" target="_blank" style="color: #4CAF50;">Awesome Java</a></li>
-        <li><a href="https://github.com/Hunterdii/30-Days-Of-Rust" target="_blank" style="color: #4CAF50;">30 Days Of Rust</a></li>
-    </ul>
-    <div style="margin-bottom: 5px;"><b>Data Structures & Algorithms:</b></div>
-    <ul style="margin-top: 0; padding-left: 20px;">
-        <li><a href="https://github.com/Hunterdii/GeeksforGeeks-POTD" target="_blank" style="color: #4CAF50;">GeeksforGeeks POTD</a></li>
-        <li><a href="https://github.com/Hunterdii/Leetcode-POTD" target="_blank" style="color: #4CAF50;">Leetcode POTD</a></li>
-    </ul>
-    <div style="margin-bottom: 5px;"><b>AI/ML Projects:</b></div>
-    <ul style="margin-top: 0; padding-left: 20px;">
-        <li><a href="https://github.com/Hunterdii/AI-Nexus" target="_blank" style="color: #4CAF50;">AI Nexus</a></li>
-    </ul>
-    <div style="margin-top: 10px;">If you find this project helpful, please consider ⭐ starring the repo!</div>
-</div>
-"""
-        st.sidebar.markdown(message, unsafe_allow_html=True)
-
 
     def main(self):
         """Main application entry point"""
@@ -2945,8 +2901,7 @@ class ResumeApp:
                             except Exception as e:
                                 st.error(f"Error during login: {str(e)}")
         
-            # Display the repository notification in the sidebar
-            self.show_repo_notification()
+            # (intentionally blank)
 
         # Force home page on first load
         if 'initial_load' not in st.session_state:
