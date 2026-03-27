@@ -1,4 +1,4 @@
-#  AI Resume Analyzer & ATS Optimization System
+#  Resume Evaluator
 
 ##  Overview
 
