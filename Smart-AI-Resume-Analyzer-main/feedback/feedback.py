@@ -1,12 +1,14 @@
+import os
 import streamlit as st
 import sqlite3
 from datetime import datetime
 import pandas as pd
-import time
 
 class FeedbackManager:
     def __init__(self):
-        self.db_path = "feedback/feedback.db"
+        feedback_dir = os.path.dirname(os.path.abspath(__file__))
+        os.makedirs(feedback_dir, exist_ok=True)
+        self.db_path = os.path.join(feedback_dir, "feedback.db")
         self.setup_database()
 
     def setup_database(self):
@@ -217,53 +219,17 @@ class FeedbackManager:
         # Submit Button
         if st.button("Submit Feedback", key="submit_feedback"):
             try:
-                # Create progress bar
-                progress_bar = st.progress(0)
-                status_text = st.empty()
-                
-                # Simulate processing with animation
-                for i in range(100):
-                    progress_bar.progress(i + 1)
-                    if i < 30:
-                        status_text.text("Processing feedback... 📝")
-                    elif i < 60:
-                        status_text.text("Analyzing responses... 🔍")
-                    elif i < 90:
-                        status_text.text("Saving to database... 💾")
-                    else:
-                        status_text.text("Finalizing... ✨")
-                    time.sleep(0.01)
-
-                # Save feedback
                 feedback_data = {
                     'rating': rating,
                     'usability_score': usability_score,
                     'feature_satisfaction': feature_satisfaction,
-                    'missing_features': missing_features,
-                    'improvement_suggestions': improvement_suggestions,
-                    'user_experience': user_experience
+                    'missing_features': missing_features or "",
+                    'improvement_suggestions': improvement_suggestions or "",
+                    'user_experience': user_experience or "",
                 }
                 self.save_feedback(feedback_data)
-                
-                # Clear progress elements
-                progress_bar.empty()
-                status_text.empty()
-                
-                # Show success message with animation
-                success_container = st.empty()
-                success_container.markdown("""
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(90deg, rgba(76, 175, 80, 0.1), rgba(33, 150, 243, 0.1)); border-radius: 10px;">
-                        <h2 style="color: #4CAF50;">Thank You! 🎉</h2>
-                        <p style="color: #E0E0E0;">Your feedback helps us improve Smart Resume AI</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                # Show balloons animation
+                st.success("Thank you! Your feedback has been submitted.")
                 st.balloons()
-                
-                # Keep success message visible
-                time.sleep(2)
-                
             except Exception as e:
                 st.error(f"Error submitting feedback: {str(e)}")
 
